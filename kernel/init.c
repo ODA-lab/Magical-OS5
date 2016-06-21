@@ -311,7 +311,7 @@ int kern_init(void)
 	mem_init();
 
 	pci_init();
-	ata_init();
+	// ata_init();
 
 	/* Setup File System */
 	fs_init((void *)0x00011000);
