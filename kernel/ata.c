@@ -82,13 +82,14 @@ static bool initialize_ata(void);
 static bool sector_rw_common(u_int8_t cmd, int device, u_int32_t sector);
 static inline void finish_sector_rw(void);
 
-//#define USE_SECTOR_RW_TEST
+#define USE_SECTOR_RW_TEST
 #ifdef USE_SECTOR_RW_TEST
 static void sector_rw_test(void)
 {
 	block_data_t block;
 	bool ret;
 
+	printk("ATA: RW test\n");
 	printk("%s\n", __FUNCTION__);
 
 	ret = read_sector(0, 0x1b8, block.sector, SECTOR_SIZE);
@@ -97,16 +98,18 @@ static void sector_rw_test(void)
 
 	printk("Data at 0x1b8 is %s", block.data);
 
-//	buf[0] = 0x6261;
-//	buf[1] = 0x6463;
-//	buf[2] = 0xa065;
+	{
+		char buf[SECTOR_SIZE];
+		strcpy(buf, "Hello world from disk!!\n");
 	
-//	write_sector(0, 222, buf, sizeof(buf) / sizeof(buf[0]));
+		printk("Writing Data at 0x1b8\n");
+		write_sector(0, 0x1b8, (sector_t *)buf, sizeof(buf) / sizeof(buf[0]));
+	}
 
 	memset(block.sector, 0x0, sizeof(block.sector));
 
-	read_sector(0, 0x1ba, block.sector, SECTOR_SIZE);
-	printk("Data at 0x1ba is %s", block.data);
+	read_sector(0, 0x1b8, block.sector, SECTOR_SIZE);
+	printk("Data at 0x1b8 is %s", block.data);
 
 }
 #else
@@ -261,7 +264,7 @@ static bool wait_until_BSY_and_DRQ_are_zero(u_int16_t port)
 	int i = 0;
 
 	do {
-		data = inb(port);
+		data = inb_p(port);
 		bsy = (data >> 7) & 0x01;
 		drq = (data >> 3) & 0x01;
 		i++;
@@ -282,7 +285,7 @@ static bool wait_until_BSY_is_zero(u_int16_t port)
 	int i = 0;
 
 	do {
-		data = inb(port);
+		data = inb_p(port);
 		bsy = (data >> 7) & 0x01;
 		i++;
 	} while (bsy && i < 1000);
@@ -300,7 +303,7 @@ static void set_device_number(int device)
 	u_int8_t data = 0;
 
 	// Device number is zero.
-	data = inb((u_int16_t) DEVICE_HEAD_REGISTER);
+	data = inb_p((u_int16_t) DEVICE_HEAD_REGISTER);
 
 	if (!device)
 		data &= 0xf;
@@ -407,7 +410,7 @@ static inline bool is_drq_active(u_int8_t data)
 static void print_error_register(int device)
 {
 	if (do_device_selection_protocol(device)) {
-		u_int8_t err = inb(ERROR_REGISTER);
+		u_int8_t err = inb_p(ERROR_REGISTER);
 		printk("error is 0x%x\n", err);
 	}
 }
@@ -420,7 +423,7 @@ static bool is_device_fault(void)
 {
 	u_int8_t data;
 
-	data = inb(STATUS_REGISTER);
+	data = inb_p(STATUS_REGISTER);
 	
 	return (data >> 5 & 0x01) == 1 ? true : false;
 }
@@ -492,10 +495,10 @@ static bool sector_rw_common(u_int8_t cmd, int device, u_int32_t sector)
 
 	timer_wait_loop_usec(4);
 
-	inb(ALTERNATE_STATUS_REGISTER);
+	inb_p(ALTERNATE_STATUS_REGISTER);
 
 read_status_register_again:
-	status = inb(STATUS_REGISTER);
+	status = inb_p(STATUS_REGISTER);
 
 	if (is_error(status)) {
 		printk("error occured:0x%x\n", status);
@@ -520,8 +523,8 @@ read_status_register_again:
  */
 static inline void finish_sector_rw(void)
 {
-	inb(ALTERNATE_STATUS_REGISTER);
-	inb(STATUS_REGISTER);
+	inb_p(ALTERNATE_STATUS_REGISTER);
+	inb_p(STATUS_REGISTER);
 }
 
 /**
@@ -550,10 +553,10 @@ static bool do_identify_device(int device, sector_t *buf)
 			return false;
 		}
 
-		data = inb(ALTERNATE_STATUS_REGISTER);
+		data = inb_p(ALTERNATE_STATUS_REGISTER);
 
 	read_status_register:
-		data = inb(STATUS_REGISTER);
+		data = inb_p(STATUS_REGISTER);
 
 		if (is_error(data)) {
 			printk("error occured:0x%x\n", data);

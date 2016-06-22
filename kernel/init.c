@@ -86,6 +86,10 @@ int kern_init(void)
 	// Init ATA device.
 	init_ata_disk_driver();
 	show_all_registered_driver();
+	{
+		struct blk_device_drivers* drivers = get_blk_driver("ATA disk");
+		drivers->op->open();
+	}
 
 
 	/* End of kernel initialization process */

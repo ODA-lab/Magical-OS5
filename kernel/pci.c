@@ -324,7 +324,7 @@ static bool find_pci_bios32(void)
 				if (!sum) {
 					printk("found pci bios32 at 0x%lx\n", addr);
 					printk("PCI BIOS32 entry point is 0x%lx\n", bios32->fields.entry);
-					printk("PCI BIOS32 revision is 0x%x\n", bios32->fields.rev);
+					printk("PCI BIOS32 revision is 0x%lx\n", bios32->fields.rev);
 					return true;
 				}
 			}

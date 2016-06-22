@@ -319,11 +319,13 @@ void printk(char *fmt, ...)
         va_list ap;
         int ival;
         char *sval;
+	int longflag = 0;
 
         va_start(ap, fmt);
         while (*fmt) {
                 char buf[PRINTK_BUF_SIZE] = { 0 };
-		if (*fmt == '%') {
+		if (*fmt == '%' || longflag ) {
+			longflag = 0;
                         switch (*++fmt) {
                         case 'd':
                         case 'c':
@@ -341,6 +343,10 @@ void printk(char *fmt, ...)
                                 sval = va_arg(ap, char *);
 				put_str(sval);
                                 break;
+			case 'l':
+				longflag = 1;
+				fmt--;
+				break;
                         default:
 				break;
 			}
