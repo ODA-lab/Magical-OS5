@@ -1,5 +1,5 @@
 #include <fs.h>
-#include <stddef.h>
+#include <sys/types.h>
 #include <memory.h>
 #include <list.h>
 #include <queue.h>
@@ -43,5 +43,6 @@ int fs_close(struct file *f)
 {
 	/* 将来的には、fidに対応するstruct fileのtask_idメンバーを設定
 	 * なし(0)にする。 */
+	(void)f;
 	return 0;
 }

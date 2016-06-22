@@ -1,3 +1,6 @@
+# DS_store
+.DS_Store
+
 # Object files
 *.o
 *.ko
@@ -29,8 +32,13 @@
 *.hex
 *.bin
 *.img
+*.dat
 
 # Debug files
 *.dSYM/
 *.su
+
+# memory map files
+*.map
+
 

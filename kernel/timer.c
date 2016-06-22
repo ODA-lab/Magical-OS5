@@ -2,8 +2,9 @@
 #include <io_port.h>
 #include <intr.h>
 #include <sched.h>
+#include <sys/types.h>
 
-unsigned int global_counter = 0;
+volatile unsigned long int global_counter = 0;
 
 void do_ir_timer(void)
 {
@@ -23,7 +24,35 @@ void timer_init(void)
 	outb_p(0x2e, IOADR_PIT_COUNTER0);
 }
 
-unsigned int timer_get_global_counter(void)
+unsigned long int timer_get_global_counter(void)
 {
 	return global_counter;
 }
+
+
+/**
+ * Wait seconds.
+ * @param how many seconds do you wait?
+ */
+void timer_wait_loop_sec(unsigned int sec)
+{
+	unsigned long int old = global_counter;
+	unsigned long int end = old + (sec * 1000) + 1;
+
+	while (global_counter < end)
+		; // nothing.
+}
+
+/**
+ * Wait usec.
+ * @param How many seconds do you wait?
+ */
+void timer_wait_loop_usec(unsigned int usec)
+{
+	unsigned long int old = global_counter;
+	unsigned long int end = old + (usec / 1000) + 1;
+
+	while (global_counter < end)
+		; // nothing.
+}
+

@@ -29,4 +29,8 @@ void mem_page_start(void);
 void *mem_alloc(void);
 void mem_free(void *page);
 
+void* kmalloc(unsigned int size);
+void  kfree(void* ptr);
+
+
 #endif /* __MEMORY_H__ */

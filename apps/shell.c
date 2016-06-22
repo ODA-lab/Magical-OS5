@@ -274,6 +274,7 @@ static int command_iowriteb(char *args)
 static int command_test(char *args)
 {
 	shell_put_str("test\r\n");
+	(void)args;
 
 	return 0;
 }

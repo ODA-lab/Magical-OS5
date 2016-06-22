@@ -14,9 +14,12 @@
 #define TIMER_TICK_MS		10
 
 extern unsigned char timer_handler;
-extern unsigned int global_counter;
+extern volatile unsigned long int global_counter;
 
 void timer_init(void);
-unsigned int timer_get_global_counter(void);
+unsigned long int timer_get_global_counter(void);
+
+void timer_wait_loop_sec(unsigned int sec);
+void timer_wait_loop_usec(unsigned int usec);
 
 #endif /* _TIMER_H_ */
