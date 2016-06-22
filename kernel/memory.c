@@ -1,5 +1,7 @@
-#include <stddef.h>
+#include <debug.h>
 #include <memory.h>
+#include <sys/types.h>
+#include <console_io.h>
 
 #define CR4_BIT_PGE	(1U << 7)
 #define MAX_HEAP_PAGES	11
@@ -111,3 +113,31 @@ void mem_free(void *page)
 	unsigned int i = ((unsigned int)page - HEAP_START_ADDR) / PAGE_SIZE;
 	heap_alloc_table[i] = 0;
 }
+
+void* kmalloc(unsigned int size)
+{
+	static unsigned int sTotalSize = 0;
+	static unsigned char* sTopAddr = NULL;
+
+	if (sTopAddr == NULL) {
+		sTopAddr = mem_alloc();
+		if (sTopAddr == NULL) {
+	  		KERN_ABORT("Memory allocate failed");
+		}
+	}
+
+	sTotalSize += size;
+	printk("kmalloc: %d left: %d\n", size, PAGE_SIZE-sTotalSize);
+	if (sTotalSize > PAGE_SIZE)  {
+		KERN_ABORT("Too much memory");
+	}
+
+	return sTopAddr+sTotalSize-size;
+}
+
+void  kfree(void *ptr)
+{
+	// mem_free(ptr);
+	(void)ptr;
+}
+

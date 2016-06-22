@@ -4,6 +4,10 @@
 #include <console_io.h>
 #include <sched.h>
 #include <lock.h>
+#include <stdarg.h>
+#include <stdlib.h>
+
+#define PRINTK_BUF_SIZE (256 + 1)
 
 #define QUEUE_BUF_SIZE	256
 
@@ -138,6 +142,7 @@ void put_char(char c)
 
 	case '\n':
 		cursor_pos.y++;
+		cursor_pos.x=0;
 		break;
 
 	default:
@@ -302,3 +307,54 @@ unsigned int get_line(char *buf, unsigned int buf_size)
 
 	return i;
 }
+
+
+/**
+ * It's a simple printf(3) for kernel.
+ * @param fmt as format strings.
+ * @param arguments for format strings.
+ */
+void printk(char *fmt, ...) 
+{
+        va_list ap;
+        int ival;
+        char *sval;
+	int longflag = 0;
+
+        va_start(ap, fmt);
+        while (*fmt) {
+                char buf[PRINTK_BUF_SIZE] = { 0 };
+		if (*fmt == '%' || longflag ) {
+			longflag = 0;
+                        switch (*++fmt) {
+                        case 'd':
+                        case 'c':
+			case 'u':
+                                ival = va_arg(ap, int);
+                                itoa(ival, buf);
+                                put_str(buf);
+                                break;
+                        case 'x':
+                                ival = va_arg(ap, int);
+                                itox(ival, buf);
+                                put_str(buf);
+                                break;
+                        case 's':
+                                sval = va_arg(ap, char *);
+				put_str(sval);
+                                break;
+			case 'l':
+				longflag = 1;
+				fmt--;
+				break;
+                        default:
+				break;
+			}
+                        fmt++;
+                } else
+                        put_char(*fmt++);
+        }
+
+        va_end(ap);
+}
+
