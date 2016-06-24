@@ -25,7 +25,7 @@ struct pci_device {
 	uint32_t sub_class;	  // sub class.
 	uint32_t base_class;     // base class.
 
-	// 0x0c 
+	// 0x0c
 	uint8_t header_type;     // header type.
 	uint8_t multi;           // multi device.
 
@@ -35,7 +35,21 @@ struct pci_device {
 
 	// 0x10-0x24
 	uint32_t base_address;   // base address.
+
+	//
+	uint16_t interrupt_line; // TODO: implement
 };
+
+// TODO: implement
+typedef struct pci_bar {
+	bool locate_below_1meg;
+	uint32_t address;
+	bool type;
+	bool prefetchable;
+	bool is64bit;
+} pci_bar;
+
+#define PCI_BAR_MMIO -1 // TODO: Set correct
 
 void find_pci_device(void);
 void show_all_pci_device(void);
@@ -46,4 +60,3 @@ uint32_t pci_data_read(struct pci_device *pci, uint8_t reg_num);
 
 
 #endif // __MIKOOS_PCI_H
-
