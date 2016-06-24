@@ -5,6 +5,7 @@
 #include <fs.h>
 #include <task.h>
 #include <console_io.h>
+#include <io_port.h>
 
 unsigned int do_syscall(unsigned int syscall_id, unsigned int arg1, unsigned int arg2, unsigned int arg3)
 {
@@ -46,6 +47,16 @@ unsigned int do_syscall(unsigned int syscall_id, unsigned int arg1, unsigned int
 	case SYSCALL_EXEC:
 		task_init((struct file *)arg1);
 		result = 0;
+		break;
+	case SYSCALL_SHUTDOWN:
+		outb_p('S', 0x8900);
+		outb_p('h', 0x8900);
+		outb_p('u', 0x8900);
+		outb_p('t', 0x8900);
+		outb_p('d', 0x8900);
+		outb_p('o', 0x8900);
+		outb_p('w', 0x8900);
+		outb_p('n', 0x8900);
 		break;
 	}
 
