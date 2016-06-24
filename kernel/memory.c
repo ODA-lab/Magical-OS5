@@ -127,8 +127,9 @@ void* kmalloc(unsigned int size)
 	}
 
 	sTotalSize += size;
-	printk("kmalloc: %d left: %d\n", size, PAGE_SIZE-sTotalSize);
+	// printk("kmalloc: %d left: %d\n", size, PAGE_SIZE-sTotalSize);
 	if (sTotalSize > PAGE_SIZE)  {
+		printk("kmalloc: %d left: %d\n", size, PAGE_SIZE-sTotalSize);
 		KERN_ABORT("Too much memory");
 	}
 

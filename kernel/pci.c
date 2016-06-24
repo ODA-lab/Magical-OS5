@@ -69,8 +69,8 @@ static inline uint32_t read_pci_class(struct pci_configuration_register *reg);
 static inline uint32_t read_pci_header_type(struct pci_configuration_register *reg);
 static uint32_t find_pci_data(uint8_t bus, uint8_t dev);
 
-static bool store_pci_device_to_list(uint8_t bus, uint8_t devfn, 
-				     uint32_t data, uint8_t func, 
+static bool store_pci_device_to_list(uint8_t bus, uint8_t devfn,
+				     uint32_t data, uint8_t func,
 				     uint32_t class, uint32_t header,
 				     uint32_t subsystem);
 
@@ -79,9 +79,9 @@ static inline int is_multi_function(uint32_t data)
 	return (data & 0x800000) ? 1 : 0;
 }
 
-static bool 
-store_pci_device_to_list(uint8_t bus, uint8_t devfn, 
-			 uint32_t data, uint8_t func, 
+static bool
+store_pci_device_to_list(uint8_t bus, uint8_t devfn,
+			 uint32_t data, uint8_t func,
 			 uint32_t class, uint32_t header,
 			 uint32_t subsystem)
 {
@@ -137,7 +137,7 @@ static uint32_t read_pci_data(struct pci_configuration_register *reg)
 
 	// write data to CONFIG_ADDRESS.
 	write_pci_config_address(reg);
-	
+
 	data = inl_p(CONFIG_DATA_1);
 
 	finish_access_to_config_data(reg);
@@ -158,7 +158,7 @@ static void write_pci_data(struct pci_configuration_register *reg, uint32_t data
 
 	// write data to CONFIG_ADDRESS.
 	write_pci_config_address(reg);
-	
+
 	outl_p(data, CONFIG_DATA_1);
 	finish_access_to_config_data(reg);
 }
@@ -173,13 +173,13 @@ static inline void write_pci_config_address(const struct pci_configuration_regis
 	uint32_t data = 0;
 
 	data = (reg->enable_bit << 31) |
-		(reg->reserved << 24) | 
-		(reg->bus_num << 16) | 
-		(reg->dev_num << 11) | 
+		(reg->reserved << 24) |
+		(reg->bus_num << 16) |
+		(reg->dev_num << 11) |
 		(reg->func_num << 8) |
 		reg->reg_num;
 
-	outl_p(data, PCI_CONFIG_ADDRESS);	
+	outl_p(data, PCI_CONFIG_ADDRESS);
 }
 
 /**
@@ -270,7 +270,7 @@ static uint32_t find_pci_data(uint8_t bus, uint8_t dev)
 
 	// Check all function numbers.
 	for (i = 0; i < PCI_FUNCTION_MAX; i++) {
-		reg.func_num = i;		
+		reg.func_num = i;
 		data = read_pci_reg00(&reg);
 		if (data != 0xffffffff) {
 
@@ -288,7 +288,7 @@ static uint32_t find_pci_data(uint8_t bus, uint8_t dev)
 				return 0;
 		}
 	}
-	
+
 	(void)status;
 
 	return 0;
@@ -310,7 +310,7 @@ static bool find_pci_bios32(void)
 	for (addr = 0xe0000; addr < 0xffff0; addr += 16) {
 		bios32 = (union pci_bios32 *) addr;
 
-		if (bios32 != NULL && 
+		if (bios32 != NULL &&
 		    bios32->fields.sig[0] == '_' &&
 		    bios32->fields.sig[1] == '3' &&
 		    bios32->fields.sig[2] == '2' &&
@@ -329,11 +329,11 @@ static bool find_pci_bios32(void)
 				}
 			}
 		}
-				
+
 	}
 	printk("pci bios32 not found\n");
 	return false;
- 
+
 }
 #endif // USE_PCI_BIOS32
 
@@ -364,9 +364,9 @@ void show_all_pci_device(void)
 	struct pci_device_list *p;
 
 	for (p = pci_device_head.next; p != &pci_device_head; p = p->next)
-		printk("Found Device: Bus %d:Devfn %d:Vender 0x%x:Device 0x%x:func %d:header 0x%x:Class 0x%lx-0x%lx:Multi %d\n", 
-		       p->data.bus, p->data.devfn, 
-		       p->data.vender, p->data.devid, 
+		printk("Found Device: Bus %d:Devfn %d:Vender 0x%x:Device 0x%x:func %d:header 0x%x:Class 0x%lx-0x%lx:Multi %d\n",
+		       p->data.bus, p->data.devfn,
+		       p->data.vender, p->data.devid,
 		       p->data.func, p->data.header_type,
 		       p->data.base_class, p->data.sub_class,
 		       p->data.multi);
@@ -390,6 +390,15 @@ struct pci_device *get_pci_device(uint16_t vender, uint16_t device, uint8_t func
 			return &p->data;
 	}
 
+	return NULL;
+}
+
+struct pci_bar *pci_resolve_bar(struct pci_device *pci, int val)
+{
+	// TODO: implement this
+	KERN_ABORT("not implemented");
+	(void)pci;
+	(void)val;
 	return NULL;
 }
 
@@ -429,7 +438,6 @@ void pci_data_write(struct pci_device *pci, uint8_t reg_num, uint32_t data)
 	reg.func_num = pci->func;
 	reg.dev_num = pci->devfn;
 	reg.bus_num = pci->bus;
-	
+
 	write_pci_data(&reg, data);
 }
-
