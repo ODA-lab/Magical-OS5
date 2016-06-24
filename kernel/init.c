@@ -21,6 +21,9 @@
 #include <io_port.h>
 #include <string.h>
 
+char buf0[512];
+char buf1[512];
+
 int kern_init(void)
 {
 	extern unsigned char syscall_handler;
@@ -88,17 +91,14 @@ int kern_init(void)
 	// Init ATA device.
 	init_ata_disk_driver();
 	show_all_registered_driver();
-	{
-		struct blk_device_drivers* drivers = get_blk_driver("ATA disk");
-		char buf0[512];
-		char buf1[512];
-		strcpy(buf1, "--------------- Please add virtual hard drive at primary master ------------ \n");
-		drivers->op->open();
-		strcpy(buf0, "--------------- Test data written in disk ----------------\n");
-		drivers->op->write(0, 100, (sector_t *)buf0, SECTOR_SIZE);
-		drivers->op->read(0, 100, (sector_t *)buf1, SECTOR_SIZE);
-		put_str(buf1);
-	}
+	struct blk_device_drivers* drivers = get_blk_driver("ATA disk");
+	drivers->op->open();
+	strcpy(buf1, "--------------- Please add virtual hard drive at primary master ------------\n");
+	strcpy(buf0, "--------------- Test data written in disk! Disk I/O Success ----------------\n");
+	drivers->op->write(0, 100, (sector_t *)buf0, SECTOR_SIZE);
+	drivers->op->read(0, 100, (sector_t *)buf1, SECTOR_SIZE);
+	put_str(buf1);
+
 	/* End of kernel initialization process */
 	while (1) {
 		x86_halt();
@@ -106,4 +106,3 @@ int kern_init(void)
 
 	return 0;
 }
-
