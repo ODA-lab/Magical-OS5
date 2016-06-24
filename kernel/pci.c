@@ -24,13 +24,13 @@
 
 // This structure represents PCI's CONFIG_ADDRESS register.
 struct pci_configuration_register {
-	u_int32_t enable_bit;      // 31: enable bit.
-	u_int32_t reserved;        // 24-30: reserved.
-	u_int32_t bus_num;         // 16-23: bus number.
-	u_int32_t dev_num;         // 11-15: device number.
-	u_int32_t func_num;        // 8-10: function number.
-	u_int32_t reg_num;         // 2-7: regster number.
-	u_int32_t bit0;            // 0-1: always 0.
+	uint32_t enable_bit;      // 31: enable bit.
+	uint32_t reserved;        // 24-30: reserved.
+	uint32_t bus_num;         // 16-23: bus number.
+	uint32_t dev_num;         // 11-15: device number.
+	uint32_t func_num;        // 8-10: function number.
+	uint32_t reg_num;         // 2-7: regster number.
+	uint32_t bit0;            // 0-1: always 0.
 };
 
 struct pci_device_list {
@@ -40,12 +40,12 @@ struct pci_device_list {
 
 union pci_bios32 {
 	struct {
-		u_int8_t sig[4];         // _32_.
-		u_int32_t entry;         // entry point.
-		u_int8_t rev;            // revision.
-		u_int8_t len;            // length.
-		u_int8_t checksum;       // checksum.
-		u_int8_t reserved[5];    // reserved.
+		uint8_t sig[4];         // _32_.
+		uint32_t entry;         // entry point.
+		uint8_t rev;            // revision.
+		uint8_t len;            // length.
+		uint8_t checksum;       // checksum.
+		uint8_t reserved[5];    // reserved.
 	} fields;
 	char data[16];
 };
@@ -60,30 +60,30 @@ static struct pci_device_list pci_device_head = {
 static inline void finish_access_to_config_data(struct pci_configuration_register *reg);
 static inline void write_pci_config_address(const struct pci_configuration_register *reg);
 
-static void write_pci_data(struct pci_configuration_register *reg, u_int32_t data);
-static u_int32_t read_pci_data(struct pci_configuration_register *reg);
+static void write_pci_data(struct pci_configuration_register *reg, uint32_t data);
+static uint32_t read_pci_data(struct pci_configuration_register *reg);
 
-static inline u_int32_t read_pci_sub_system(struct pci_configuration_register *reg);
-static inline u_int32_t read_pci_reg00(struct pci_configuration_register *reg);
-static inline u_int32_t read_pci_class(struct pci_configuration_register *reg);
-static inline u_int32_t read_pci_header_type(struct pci_configuration_register *reg);
-static u_int32_t find_pci_data(u_int8_t bus, u_int8_t dev);
+static inline uint32_t read_pci_sub_system(struct pci_configuration_register *reg);
+static inline uint32_t read_pci_reg00(struct pci_configuration_register *reg);
+static inline uint32_t read_pci_class(struct pci_configuration_register *reg);
+static inline uint32_t read_pci_header_type(struct pci_configuration_register *reg);
+static uint32_t find_pci_data(uint8_t bus, uint8_t dev);
 
-static bool store_pci_device_to_list(u_int8_t bus, u_int8_t devfn, 
-				     u_int32_t data, u_int8_t func, 
-				     u_int32_t class, u_int32_t header,
-				     u_int32_t subsystem);
+static bool store_pci_device_to_list(uint8_t bus, uint8_t devfn, 
+				     uint32_t data, uint8_t func, 
+				     uint32_t class, uint32_t header,
+				     uint32_t subsystem);
 
-static inline int is_multi_function(u_int32_t data)
+static inline int is_multi_function(uint32_t data)
 {
 	return (data & 0x800000) ? 1 : 0;
 }
 
 static bool 
-store_pci_device_to_list(u_int8_t bus, u_int8_t devfn, 
-			 u_int32_t data, u_int8_t func, 
-			 u_int32_t class, u_int32_t header,
-			 u_int32_t subsystem)
+store_pci_device_to_list(uint8_t bus, uint8_t devfn, 
+			 uint32_t data, uint8_t func, 
+			 uint32_t class, uint32_t header,
+			 uint32_t subsystem)
 {
 	struct pci_device_list *p;
 
@@ -128,9 +128,9 @@ static inline void finish_access_to_config_data(struct pci_configuration_registe
  * @param reg it should be set bus, device, function and so forth.
  * @return data from CONFIG_DATA.
  */
-static u_int32_t read_pci_data(struct pci_configuration_register *reg)
+static uint32_t read_pci_data(struct pci_configuration_register *reg)
 {
-	u_int32_t data;
+	uint32_t data;
 
 	// Enable bit should be 1 before read PCI_DATA.
 	reg->enable_bit = 1;
@@ -151,7 +151,7 @@ static u_int32_t read_pci_data(struct pci_configuration_register *reg)
  * @param data should be write to CONFIG_DATA
  * @return data from CONFIG_DATA.
  */
-static void write_pci_data(struct pci_configuration_register *reg, u_int32_t data)
+static void write_pci_data(struct pci_configuration_register *reg, uint32_t data)
 {
 	// Enable bit should be 1 before read PCI_DATA.
 	reg->enable_bit = 1;
@@ -170,7 +170,7 @@ static void write_pci_data(struct pci_configuration_register *reg, u_int32_t dat
  */
 static inline void write_pci_config_address(const struct pci_configuration_register *reg)
 {
-	u_int32_t data = 0;
+	uint32_t data = 0;
 
 	data = (reg->enable_bit << 31) |
 		(reg->reserved << 24) | 
@@ -187,7 +187,7 @@ static inline void write_pci_config_address(const struct pci_configuration_regis
  * @param reg it should be set bus, device, function and so forth.
  * @return PCI class.
  */
-static inline u_int32_t read_pci_class(struct pci_configuration_register *reg)
+static inline uint32_t read_pci_class(struct pci_configuration_register *reg)
 {
 	reg->reg_num = 0x8;
 
@@ -199,7 +199,7 @@ static inline u_int32_t read_pci_class(struct pci_configuration_register *reg)
  * @param reg it should be set bus, device, function and so forth.
  * @return vendor id and device id.
  */
-static inline u_int32_t read_pci_reg00(struct pci_configuration_register *reg)
+static inline uint32_t read_pci_reg00(struct pci_configuration_register *reg)
 {
 	reg->reg_num = 0;
 
@@ -211,7 +211,7 @@ static inline u_int32_t read_pci_reg00(struct pci_configuration_register *reg)
  * @param reg it should be set bus, device, function and so forth.
  * @return status.
  */
-static inline u_int32_t read_pci_command_register(struct pci_configuration_register *reg)
+static inline uint32_t read_pci_command_register(struct pci_configuration_register *reg)
 {
 	reg->reg_num = 0x4;
 
@@ -223,7 +223,7 @@ static inline u_int32_t read_pci_command_register(struct pci_configuration_regis
  * @param reg it should be set bus, device, function and so forth.
  * @return vendor id and device id.
  */
-static inline u_int32_t read_pci_header_type(struct pci_configuration_register *reg)
+static inline uint32_t read_pci_header_type(struct pci_configuration_register *reg)
 {
 	reg->reg_num = 0xc;
 
@@ -235,7 +235,7 @@ static inline u_int32_t read_pci_header_type(struct pci_configuration_register *
  * @param reg it should be set bus, device, function and so forth.
  * @return sub system.
  */
-static inline u_int32_t read_pci_sub_system(struct pci_configuration_register *reg)
+static inline uint32_t read_pci_sub_system(struct pci_configuration_register *reg)
 {
 	reg->reg_num = 0x2c;
 
@@ -248,13 +248,13 @@ static inline u_int32_t read_pci_sub_system(struct pci_configuration_register *r
  * @param dev device number.
  * @return always 0.
  */
-static u_int32_t find_pci_data(u_int8_t bus, u_int8_t dev)
+static uint32_t find_pci_data(uint8_t bus, uint8_t dev)
 {
-	u_int32_t data;
-	u_int32_t status;
-	u_int32_t class;
-	u_int32_t header;
-	u_int32_t subsystem;
+	uint32_t data;
+	uint32_t status;
+	uint32_t class;
+	uint32_t header;
+	uint32_t subsystem;
 
 	int i;
 	struct pci_configuration_register reg;
@@ -379,7 +379,7 @@ void show_all_pci_device(void)
  * @param function number.
  * @return if found it returns pci device information structure.
  */
-struct pci_device *get_pci_device(u_int16_t vender, u_int16_t device, u_int8_t function)
+struct pci_device *get_pci_device(uint16_t vender, uint16_t device, uint8_t function)
 {
 	struct pci_device_list *p;
 
@@ -399,7 +399,7 @@ struct pci_device *get_pci_device(u_int16_t vender, u_int16_t device, u_int8_t f
  * @param reg_num which register you want to read.
  * @return data from PCI_DATA.
  */
-u_int32_t pci_data_read(struct pci_device *pci, u_int8_t reg_num)
+uint32_t pci_data_read(struct pci_device *pci, uint8_t reg_num)
 {
 	struct pci_configuration_register reg;
 
@@ -419,7 +419,7 @@ u_int32_t pci_data_read(struct pci_device *pci, u_int8_t reg_num)
  * @param reg_num which register you want to write.
  * @param data.
  */
-void pci_data_write(struct pci_device *pci, u_int8_t reg_num, u_int32_t data)
+void pci_data_write(struct pci_device *pci, uint8_t reg_num, uint32_t data)
 {
 	struct pci_configuration_register reg;
 
