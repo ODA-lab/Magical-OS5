@@ -95,6 +95,66 @@ void con_init(void)
 	keycode_queue.end = 0;
 	keycode_queue.is_full = 0;
 	error_status = 0;
+
+/*
+	// unlock CRTC registers 
+	outb_p(0x3, 0x3d4);
+        outb_p(inb_p(0x3d5) | 0x80, 0x3d5);
+        outb_p(0x11, 0x3d4);
+        outb_p(inb_p(0x3d5) & ~0x80, 0x3d5);
+
+	outb_p(0x10, 0x3c0); outb_p(0x01, 0x3c1);  // mode control
+	outb_p(0x11, 0x3c0); outb_p(0x00, 0x3c1);  // overscan register
+	outb_p(0x12, 0x3c0); outb_p(0x0f, 0x3c1);  // color plane enable
+	outb_p(0x13, 0x3c0); outb_p(0x00, 0x3c1);  // horizontal plane enable
+	outb_p(0x14, 0x3c0); outb_p(0x00, 0x3c1);  // color select
+	outb_p(0xe3, 0x3c2); // misc out register
+	outb_p(0x01, 0x3c4); outb_p(0x01, 0x3c5);  // clock mode register
+	outb_p(0x03, 0x3c4); outb_p(0x00, 0x3c5);  // character select
+	outb_p(0x04, 0x3c4); outb_p(0x02, 0x3c5);  // memory mode register
+	outb_p(0x05, 0x3ce); outb_p(0x00, 0x3cf);  // mode register
+	outb_p(0x06, 0x3ce); outb_p(0x05, 0x3cf);  // misc register
+	outb_p(0x00, 0x3d4); outb_p(0x5f, 0x3d5);  // horizontal total
+	outb_p(0x01, 0x3d4); outb_p(0x4f, 0x3d5);  // horizontal display enable end
+	outb_p(0x02, 0x3d4); outb_p(0x50, 0x3d5);  // horizontal blank start
+	outb_p(0x03, 0x3d4); outb_p(0x82, 0x3d5);  // horizontal blank end
+	outb_p(0x04, 0x3d4); outb_p(0x54, 0x3d5);  // horizontal retrace start
+	outb_p(0x05, 0x3d4); outb_p(0x80, 0x3d5);  // horizontal retrace end
+	outb_p(0x06, 0x3d4); outb_p(0x0b, 0x3d5);  // vertical total
+	outb_p(0x07, 0x3d4); outb_p(0x3e, 0x3d5);  // overflow register
+	outb_p(0x08, 0x3d4); outb_p(0x00, 0x3d5);  // preset row scan
+	outb_p(0x09, 0x3d4); outb_p(0x40, 0x3d5);  // max scan line
+	outb_p(0x10, 0x3d4); outb_p(0xea, 0x3d5);  // vertical retrace start
+	outb_p(0x11, 0x3d4); outb_p(0x8c, 0x3d5);  // vertical retrace end
+	outb_p(0x12, 0x3d4); outb_p(0xdf, 0x3d5);  // vertical display enable end
+	outb_p(0x13, 0x3d4); outb_p(0x28, 0x3d5);  // logical width
+	outb_p(0x14, 0x3d4); outb_p(0x00, 0x3d5);  // underline location
+	outb_p(0x15, 0x3d4); outb_p(0xe7, 0x3d5);  // vertical blank start
+	outb_p(0x16, 0x3d4); outb_p(0x04, 0x3d5);  // vertical blank end
+	outb_p(0x17, 0x3d4); outb_p(0xe3, 0x3d5);  // mode control
+	
+	// color palette
+	{
+	  int idx, red, green, blue;
+	  for(idx=0;idx<16;idx++) {
+	    red=idx * 4; green = idx * 4; blue = idx * 4;
+	    outb_p(idx, 0x3c8); outb_p(red, 0x3c9); outb_p(green, 0x3c9); outb_p(blue, 0x3c9);
+	  }
+	}
+
+	// lock 16-color palette and unblank display 
+	(void)inb_p(0x3da);
+	outb_p(0x20, 0x3c0);
+
+
+	{
+		// unsigned char *vram = 0xa0000;
+		unsigned int x;
+		for(x= 0xa0000;x<0xbffff; x += 4) {
+		  *((unsigned char*) x ) = 0xff ; 
+		}
+	}
+*/
 }
 
 void update_cursor(void)
