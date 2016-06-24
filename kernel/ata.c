@@ -26,14 +26,14 @@
 #define PIO_SECTOR_READ_CMD  0x20
 
 // Max logical sector number.
-static u_int32_t max_logical_sector_num = 0;
+static uint32_t max_logical_sector_num = 0;
 
 // driver operations.
 static int open_ATA_disk(void);
 static int close_ATA_disk(void);
-static int read_sector(int device, u_int32_t sector, 
+static int read_sector(int device, uint32_t sector, 
 		       sector_t *buf,	size_t buf_size);
-static int write_sector(int device, u_int32_t sector, 
+static int write_sector(int device, uint32_t sector, 
 			sector_t *buf,	size_t buf_size);
 
 // For find IDE interface.
@@ -62,24 +62,24 @@ static void get_base_address(void);
 
 // for ATA device.
 
-static bool wait_until_BSY_and_DRQ_are_zero(u_int16_t port);
-static bool wait_until_BSY_is_zero(u_int16_t port);
+static bool wait_until_BSY_and_DRQ_are_zero(uint16_t port);
+static bool wait_until_BSY_is_zero(uint16_t port);
 static void set_device_number(int device);
 static bool do_device_selection_protocol(int device);
-static inline void set_cylinder_register(u_int8_t high, u_int8_t low);
-static inline u_int8_t get_cylinder_regster(u_int16_t port);
-static inline void set_sector_count_register(u_int8_t data);
-static u_int8_t get_DRDY(void);
-static inline void write_command(u_int8_t com);
-static inline bool is_error(u_int8_t data);
-static inline bool is_drq_active(u_int8_t data);
+static inline void set_cylinder_register(uint8_t high, uint8_t low);
+static inline uint8_t get_cylinder_regster(uint16_t port);
+static inline void set_sector_count_register(uint8_t data);
+static uint8_t get_DRDY(void);
+static inline void write_command(uint8_t com);
+static inline bool is_error(uint8_t data);
+static inline bool is_drq_active(uint8_t data);
 static void print_error_register(int device);
 static bool is_device_fault(void);
 static bool do_identify_device(int device, sector_t *buf);
 static void do_soft_reset(int device);
 static bool initialize_common(int device);
 static bool initialize_ata(void);
-static bool sector_rw_common(u_int8_t cmd, int device, u_int32_t sector);
+static bool sector_rw_common(uint8_t cmd, int device, uint32_t sector);
 static inline void finish_sector_rw(void);
 
 // #define USE_SECTOR_RW_TEST
@@ -154,7 +154,7 @@ static int close_ATA_disk(void)
  * @param data size. it should be 256.
  * @return negative if fail to write data.
  */
-int write_sector(int device, u_int32_t sector, 
+int write_sector(int device, uint32_t sector, 
 		  sector_t *buf, size_t buf_size)
 {
 	bool ret;
@@ -180,7 +180,7 @@ int write_sector(int device, u_int32_t sector,
  * @param data size. it should be 256.
  * @return  0 if process is success. if something wrong it returns negative value
  */
-int read_sector(int device, u_int32_t sector, 
+int read_sector(int device, uint32_t sector, 
 		 sector_t *buf, size_t buf_size)
 {
 	bool ret;
@@ -229,7 +229,7 @@ static bool find_ata_device(void)
  */
 static void set_bus_master_bit(void)
 {
-	u_int32_t data;
+	uint32_t data;
 
 	data = pci_data_read(this_device, 0x4) | 0x04;
 	pci_data_write(this_device, 0x04, data);
@@ -257,10 +257,10 @@ static void get_base_address(void)
  * @param port which can be STATUS REGISTER or ALTERNATE STATUS REGISTER.
  * @return true if both bits are zero in few usec.
  */
-static bool wait_until_BSY_and_DRQ_are_zero(u_int16_t port)
+static bool wait_until_BSY_and_DRQ_are_zero(uint16_t port)
 {
-	u_int8_t data = 0xff;
-	u_int8_t bsy, drq;
+	uint8_t data = 0xff;
+	uint8_t bsy, drq;
 	int i = 0;
 
 	do {
@@ -278,10 +278,10 @@ static bool wait_until_BSY_and_DRQ_are_zero(u_int16_t port)
  * @param port which can be STATUS REGISTER or ALTERNATE STATUS REGISTER.
  * @return true if BSY bit is zero in few usec.
  */
-static bool wait_until_BSY_is_zero(u_int16_t port)
+static bool wait_until_BSY_is_zero(uint16_t port)
 {
-	u_int8_t data = 0xff;
-	u_int8_t bsy;
+	uint8_t data = 0xff;
+	uint8_t bsy;
 	int i = 0;
 
 	do {
@@ -300,17 +300,17 @@ static bool wait_until_BSY_is_zero(u_int16_t port)
  */
 static void set_device_number(int device)
 {
-	u_int8_t data = 0;
+	uint8_t data = 0;
 
 	// Device number is zero.
-	data = inb_p((u_int16_t) DEVICE_HEAD_REGISTER);
+	data = inb_p((uint16_t) DEVICE_HEAD_REGISTER);
 
 	if (!device)
 		data &= 0xf;
 	else
 		data |= 0x10;
 
-	outb_p(data, (u_int16_t) DEVICE_HEAD_REGISTER);
+	outb_p(data, (uint16_t) DEVICE_HEAD_REGISTER);
 
 	// five usec should be enough time to wait.
 	timer_wait_loop_usec(5);
@@ -340,7 +340,7 @@ static bool do_device_selection_protocol(int device)
  * @param high data to Cylinder High register.
  * @param log data to Cylinder Low register.
  */
-static inline void set_cylinder_register(u_int8_t high, u_int8_t low)
+static inline void set_cylinder_register(uint8_t high, uint8_t low)
 {
 	outb_p(low, CYLINDER_LOW_REGISTER);
 	outb_p(high, CYLINDER_HIGH_REGISTER);
@@ -351,7 +351,7 @@ static inline void set_cylinder_register(u_int8_t high, u_int8_t low)
  * @param port is Cylinder high or low.
  * @return data
  */
-static inline u_int8_t get_cylinder_regster(u_int16_t port)
+static inline uint8_t get_cylinder_regster(uint16_t port)
 {
 	return inb_p(port);
 }
@@ -360,7 +360,7 @@ static inline u_int8_t get_cylinder_regster(u_int16_t port)
  * Set data to Sector Count register.
  * @param data
  */
-static inline void set_sector_count_register(u_int8_t data)
+static inline void set_sector_count_register(uint8_t data)
 {
 	outb_p(data, SECTOR_COUNT_REGISTER);
 }
@@ -369,9 +369,9 @@ static inline void set_sector_count_register(u_int8_t data)
  * Returns DRDY bit which in Status register.
  * @return 1 or 0.
  */
-static u_int8_t get_DRDY(void)
+static uint8_t get_DRDY(void)
 {
-	u_int8_t data = inb_p(STATUS_REGISTER);
+	uint8_t data = inb_p(STATUS_REGISTER);
 
 	return (data >> 6) & 0x01;
 }
@@ -380,7 +380,7 @@ static u_int8_t get_DRDY(void)
  * Execute ATA command.
  * @param com is command number.
  */
-static inline void write_command(u_int8_t com)
+static inline void write_command(uint8_t com)
 {
 	outb_p(com, COMMAND_REGISTER);
 }
@@ -389,7 +389,7 @@ static inline void write_command(u_int8_t com)
  * Check if error bit is active .
  * @return false means "no error".
  */
-static inline bool is_error(u_int8_t data)
+static inline bool is_error(uint8_t data)
 {
 	return (data & 0x01) == 0 ? false : true;
 }
@@ -398,7 +398,7 @@ static inline bool is_error(u_int8_t data)
  * Check if DRQ bit is active.
  * @return true is this bit is active.
  */
-static inline bool is_drq_active(u_int8_t data)
+static inline bool is_drq_active(uint8_t data)
 {
 	return (((data >> 3) & 0x01) == 1) ? true : false;
 }
@@ -410,7 +410,7 @@ static inline bool is_drq_active(u_int8_t data)
 static void print_error_register(int device)
 {
 	if (do_device_selection_protocol(device)) {
-		u_int8_t err = inb_p(ERROR_REGISTER);
+		uint8_t err = inb_p(ERROR_REGISTER);
 		printk("error is 0x%x\n", err);
 	}
 }
@@ -421,7 +421,7 @@ static void print_error_register(int device)
  */
 static bool is_device_fault(void)
 {
-	u_int8_t data;
+	uint8_t data;
 
 	data = inb_p(STATUS_REGISTER);
 	
@@ -450,10 +450,10 @@ static bool wait_until_device_is_ready(int device)
  * @param sector number.
  * @return true if success.
  */
-static bool sector_rw_common(u_int8_t cmd, int device, u_int32_t sector)
+static bool sector_rw_common(uint8_t cmd, int device, uint32_t sector)
 {
 	bool b = false;
-	u_int8_t status;
+	uint8_t status;
 	int loop = 0;
 
 	// sector number need to be checked.
@@ -536,7 +536,7 @@ static inline void finish_sector_rw(void)
 static bool do_identify_device(int device, sector_t *buf)
 {
 	bool ret = false;
-	u_int8_t data;
+	uint8_t data;
 	int i;
 
 	do_device_selection_protocol(device);
@@ -609,7 +609,7 @@ enum {
  * @param low data from Cylinder low register.
  * @return device type.
  */
-static int get_device_type(u_int8_t high, u_int8_t low)
+static int get_device_type(uint8_t high, uint8_t low)
 {
 	if (high == 0x0 && low == 0x0)
 		return DEV_TYPE_ATA;
@@ -626,7 +626,7 @@ static int get_device_type(u_int8_t high, u_int8_t low)
  */
 static bool initialize_common(int device)
 {
-	u_int8_t high, low;
+	uint8_t high, low;
 	sector_t buf[256];
 	int dev = 0;
 	bool ret = false;
@@ -660,7 +660,7 @@ static bool initialize_common(int device)
 		return false;
 	}
 
-	max_logical_sector_num = ((u_int32_t) buf[61] << 16) | buf[60];
+	max_logical_sector_num = ((uint32_t) buf[61] << 16) | buf[60];
 	
 	return true;
 }

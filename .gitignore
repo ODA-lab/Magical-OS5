@@ -33,6 +33,7 @@
 *.bin
 *.img
 *.dat
+apps/bin/
 
 # Debug files
 *.dSYM/

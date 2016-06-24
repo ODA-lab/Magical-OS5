@@ -7,9 +7,9 @@ struct blk_dev_driver_operations {
 	char name[32]; // driver name.
 	int (*open)(void);
 	int (*close)(void);
-	int (*read)(int device, u_int32_t sector, 
+	int (*read)(int device, uint32_t sector, 
 		    sector_t *buf, size_t buf_size);
-	int (*write)(int device, u_int32_t sector,
+	int (*write)(int device, uint32_t sector,
 		     sector_t *buf, size_t buf_size);
 	int (*ioctl)(void); // temporary definition.
 	int (*scattered_io)(void); // temporary definition.
