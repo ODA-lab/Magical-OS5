@@ -23,6 +23,7 @@
 #include <console_io.h>
 #include <memory.h>
 #include <timer.h>
+#include <debug.h>
 
 typedef struct CPUContext {
  uint32_t vector;
@@ -39,50 +40,73 @@ typedef struct net_device_t {
 	struct pci_device *pci;
 	void (*rx_poll)(struct net_device_t *netdev);
 	void (*tx_poll)(struct net_device_t *netdev, void *pkt, uint16_t length );
-	void (*rx_init)(struct net_device_t *netdev);
-	void (*tx_init)(struct net_device_t *netdev);
+	int (*rx_init)(struct net_device_t *netdev);
+	int (*tx_init)(struct net_device_t *netdev);
 	void (*rx_enable)(struct net_device_t *netdev);
 } net_device_t;
 
-// MMIO operations
-static uint8_t mmio_read8 (uint32_t p_address);
-static uint16_t mmio_read16 (uint32_t p_address);
-static uint32_t mmio_read32 (uint32_t p_address);
-static uint64_t mmio_read64 (uint32_t p_address);
-static void mmio_write8 (uint32_t p_address,uint8_t p_value);
-static void mmio_write16 (uint32_t p_address,uint16_t p_value);
-static void mmio_write32 (uint32_t p_address,uint32_t p_value);
-static void mmio_write64 (uint32_t p_address,uint64_t p_value);
 
-uint8_t mmio_read8 (uint32_t p_address)
+net_device_t* find_net_device_by_irq(uint32_t int_vector)
+{
+	// TODO: implement
+	(void)int_vector;
+	KERN_ABORT("not implemented");
+	return NULL;
+		// net_device_t *netdev = find_net_device_by_irq( ctx->vector );
+}
+void AddInterruptServiceRoutine(int interrupt_line,  void (*interrupt_handler)(CPUContext *))
+{
+	//TODO: implement
+	(void)interrupt_line;
+	(void)interrupt_handler;
+	KERN_ABORT("not implemented");
+}
+void register_global_network_device(net_device_t* netdev )
+{
+	//TODO: implement
+	(void)netdev;
+	KERN_ABORT("not implemented");
+}
+
+// MMIO operations
+static uint8_t mmio_read8 (void* p_address);
+static uint16_t mmio_read16 (void* p_address);
+static uint32_t mmio_read32 (void* p_address);
+static uint64_t mmio_read64 (void* p_address);
+static void mmio_write8 (void* p_address,uint8_t p_value);
+static void mmio_write16 (void* p_address,uint16_t p_value);
+static void mmio_write32 (void* p_address,uint32_t p_value);
+static void mmio_write64 (void* p_address,uint64_t p_value);
+
+uint8_t mmio_read8 (void* p_address)
 {
     return *((volatile uint8_t*)(p_address));
 }
-uint16_t mmio_read16 (uint32_t p_address)
+uint16_t mmio_read16 (void* p_address)
 {
     return *((volatile uint16_t*)(p_address));
 }
-uint32_t mmio_read32 (uint32_t p_address)
+uint32_t mmio_read32 (void* p_address)
 {
     return *((volatile uint32_t*)(p_address));
 }
-uint64_t mmio_read64 (uint32_t p_address)
+uint64_t mmio_read64 (void* p_address)
 {
     return *((volatile uint64_t*)(p_address));
 }
-void mmio_write8 (uint32_t p_address,uint8_t p_value)
+void mmio_write8 (void* p_address,uint8_t p_value)
 {
     (*((volatile uint8_t*)(p_address)))=(p_value);
 }
-void mmio_write16 (uint32_t p_address,uint16_t p_value)
+void mmio_write16 (void* p_address,uint16_t p_value)
 {
     (*((volatile uint16_t*)(p_address)))=(p_value);
 }
-void mmio_write32 (uint32_t p_address,uint32_t p_value)
+void mmio_write32 (void* p_address,uint32_t p_value)
 {
     (*((volatile uint32_t*)(p_address)))=(p_value);
 }
-void mmio_write64 (uint32_t p_address,uint64_t p_value)
+void mmio_write64 (void* p_address,uint64_t p_value)
 {
     (*((volatile uint64_t*)(p_address)))=(p_value);
 }
@@ -230,21 +254,21 @@ static int net_i825xx_rx_init( net_device_t *netdev )
 	i825xx_device_t *dev = (i825xx_device_t *)netdev->lldev;
 
 	// unaligned base address
-	uint64_t tmpbase = (uint64_t)kmalloc((sizeof(i825xx_rx_desc_t) * NUM_RX_DESCRIPTORS) + 16);
+	void* tmpbase = kmalloc((sizeof(i825xx_rx_desc_t) * NUM_RX_DESCRIPTORS) + 16);
 	// aligned base address
-	dev->rx_desc_base = (tmpbase % 16) ? (uint8_t *)((tmpbase) + 16 - (tmpbase % 16)) : (uint8_t *)tmpbase;
+	dev->rx_desc_base = ((int)tmpbase % 16) ? (uint8_t *)(((int)tmpbase) + 16 - ((int)tmpbase % 16)) : (uint8_t *)tmpbase;
 
 	for( i = 0; i < NUM_RX_DESCRIPTORS; i++ )
 	{
 		dev->rx_desc[i] = (i825xx_rx_desc_t *)(dev->rx_desc_base + (i * 16));
-		dev->rx_desc[i]->address = (uint64_t)kmalloc(8192+16); // packet buffer size (8K)
+		dev->rx_desc[i]->address = (uint64_t)(int)kmalloc(8192+16); // packet buffer size (8K)
 		dev->rx_desc[i]->status = 0;
 	}
 
 	// setup the receive descriptor ring buffer (TODO: >32-bits may be broken in this code)
-	mmio_write32( i825xx_REG_RDBAH, (uint32_t)((uint64_t)dev->rx_desc_base >> 32) );
-	mmio_write32( i825xx_REG_RDBAL, (uint32_t)((uint64_t)dev->rx_desc_base & 0xFFFFFFFF) );
-	printk("i825xx[%u]: RDBAH/RDBAL = %x:%x\n", netdev->hwid, mmio_read32(i825xx_REG_RDBAH), mmio_read32(i825xx_REG_RDBAL));
+	mmio_write32( i825xx_REG_RDBAH, (uint32_t)( ((uint64_t)(uint32_t)dev->rx_desc_base) >> 32) );
+	mmio_write32( i825xx_REG_RDBAL, (uint32_t)( ((uint64_t)(uint32_t)dev->rx_desc_base) & 0xFFFFFFFF) );
+	printk("i825xx[%u]: RDBAH/RDBAL = %x:%x\n", (int)netdev->hwid, (int)mmio_read32(i825xx_REG_RDBAH), (int)mmio_read32(i825xx_REG_RDBAL));
 
 	// receive buffer length; NUM_RX_DESCRIPTORS 16-byte descriptors
 	mmio_write32( i825xx_REG_RDLEN, (uint32_t)(NUM_RX_DESCRIPTORS * 16) );
@@ -268,8 +292,8 @@ static int net_i825xx_tx_init( net_device_t *netdev )
 	int i;
 	i825xx_device_t *dev = (i825xx_device_t *)netdev->lldev;
 
-	uint64_t tmpbase = (uint64_t)kmalloc((sizeof(i825xx_tx_desc_t) * NUM_TX_DESCRIPTORS) + 16);
-	dev->tx_desc_base = (tmpbase % 16) ? (uint8_t *)((tmpbase) + 16 - (tmpbase % 16)) : (uint8_t *)tmpbase;
+	void* tmpbase = kmalloc((sizeof(i825xx_tx_desc_t) * NUM_TX_DESCRIPTORS) + 16);
+	dev->tx_desc_base = (int)tmpbase % 16 ? ((uint8_t *)tmpbase + 16 - (int)tmpbase % 16) : (uint8_t *)tmpbase;
 
 	for( i = 0; i < NUM_TX_DESCRIPTORS; i++ )
 	{
@@ -279,9 +303,9 @@ static int net_i825xx_tx_init( net_device_t *netdev )
 	}
 
 	// setup the transmit descriptor ring buffer
-	mmio_write32( i825xx_REG_TDBAH, (uint32_t)((uint64_t)dev->tx_desc_base >> 32) );
-	mmio_write32( i825xx_REG_TDBAL, (uint32_t)((uint64_t)dev->tx_desc_base & 0xFFFFFFFF) );
-	printk("i825xx[%u]: TDBAH/TDBAL = %x:%x\n", netdev->hwid, mmio_read32(i825xx_REG_TDBAH), mmio_read32(i825xx_REG_TDBAL));
+	mmio_write32( i825xx_REG_TDBAH, (uint32_t)((uint64_t)(uint32_t)dev->tx_desc_base >> 32) );
+	mmio_write32( i825xx_REG_TDBAL, (uint32_t)((uint64_t)(uint32_t)dev->tx_desc_base & 0xFFFFFFFF) );
+	printk("i825xx[%u]: TDBAH/TDBAL = %x:%x\n", (int)netdev->hwid, (int)mmio_read32(i825xx_REG_TDBAH), (int)mmio_read32(i825xx_REG_TDBAL));
 
 	// transmit buffer length; NUM_TX_DESCRIPTORS 16-byte descriptors
 	mmio_write32( i825xx_REG_TDLEN, (uint32_t)(NUM_TX_DESCRIPTORS * 16) );
@@ -301,7 +325,7 @@ static void net_i825xx_tx_poll( net_device_t *netdev, void *pkt, uint16_t length
 	i825xx_device_t *dev = (i825xx_device_t *)netdev->lldev;
 	//printk("i825xx[%u]: transmitting packet (%u bytes) [h=%u, t=%u]\n", netdev->hwid, length, mmio_read32(i825xx_REG_TDH), dev->tx_tail);
 
-	dev->tx_desc[dev->tx_tail]->address = (uint64_t)pkt;
+	dev->tx_desc[dev->tx_tail]->address = (uint64_t)(int)pkt;
 	dev->tx_desc[dev->tx_tail]->length = length;
 	dev->tx_desc[dev->tx_tail]->cmd = ((1 << 3) | (3));
 
@@ -316,7 +340,7 @@ static void net_i825xx_tx_poll( net_device_t *netdev, void *pkt, uint16_t length
 	}
 
 	netdev->tx_count++;
-	//printk("i825xx[%u]: transmit status = 0x%x\n", netdev->hwid, (dev->tx_desc[oldtail]->sta & 0xF));
+	//printk("i825xx[%u]: transmit status = 0x%x\n", (int)netdev->hwid, (int)(dev->tx_desc[oldtail]->sta & 0xF));
 
 }
 
@@ -328,13 +352,13 @@ static void net_i825xx_rx_poll( net_device_t *netdev )
 	while( (dev->rx_desc[dev->rx_tail]->status & (1 << 0)) )
 	{
 		// raw packet and packet length (excluding CRC)
-		uint8_t *pkt = (void *)dev->rx_desc[dev->rx_tail]->address;
+		uint8_t *pkt = (void *)(int)(dev->rx_desc[dev->rx_tail]->address);
 		uint16_t pktlen = dev->rx_desc[dev->rx_tail]->length;
 		bool dropflag = false;
 
 		if( pktlen < 60 )
 		{
-			printk("net[u]: short packet (%u bytes)\n", netdev->hwid, pktlen);
+			printk("net[%u]: short packet (%u bytes)\n", (int)netdev->hwid, (int)pktlen);
 			dropflag = true;
 		}
 
@@ -342,13 +366,13 @@ static void net_i825xx_rx_poll( net_device_t *netdev )
 		if( !(dev->rx_desc[dev->rx_tail]->status & (1 << 1)) )
 		{
 			printk("net[%u]: no EOP set! (len=%u, 0x%x 0x%x 0x%x)\n",
-				netdev->hwid, pktlen, pkt[0], pkt[1], pkt[2]);
+				(int)netdev->hwid, (int)pktlen, (int)pkt[0], (int)pkt[1], (int)pkt[2]);
 			dropflag = true;
 		}
 
 		if( dev->rx_desc[dev->rx_tail]->errors )
 		{
-			printk("net[%u]: rx errors (0x%x)\n", netdev->hwid, dev->rx_desc[dev->rx_tail]->errors);
+			printk("net[%u]: rx errors (0x%x)\n", (int)netdev->hwid, (int)dev->rx_desc[dev->rx_tail]->errors);
 			dropflag = true;
 		}
 
@@ -392,28 +416,28 @@ static void i825xx_interrupt_handler( CPUContext *ctx )
 		mmio_write32(i825xx_REG_CTRL, (mmio_read32(i825xx_REG_CTRL) | CTRL_SLU));
 
 		// debugging info (probably not necessary in most scenarios)
-		printk("i825xx: Link Status Change, STATUS = 0x%x\n", mmio_read32(i825xx_REG_STATUS));
-		printk("i825xx: PHY CONTROL = 0x%x\n", net_i825xx_phy_read(dev, i825xx_PHYREG_PCTRL));
-		printk("i825xx: PHY STATUS = 0x%x\n", net_i825xx_phy_read(dev, i825xx_PHYREG_PSTATUS));
-		printk("i825xx: PHY PSSTAT = 0x%x\n", net_i825xx_phy_read(dev, i825xx_PHYREG_PSSTAT));
-		printk("i825xx: PHY ANA = 0x%x\n", net_i825xx_phy_read(dev, 4));
-		printk("i825xx: PHY ANE = 0x%x\n", net_i825xx_phy_read(dev, 6));
-		printk("i825xx: PHY GCON = 0x%x\n", net_i825xx_phy_read(dev, 9));
-		printk("i825xx: PHY GSTATUS = 0x%x\n", net_i825xx_phy_read(dev, 10));
-		printk("i825xx: PHY EPSTATUS = 0x%x\n", net_i825xx_phy_read(dev, 15));
+		printk("i825xx: Link Status Change, STATUS = 0x%x\n", (int)mmio_read32(i825xx_REG_STATUS));
+		printk("i825xx: PHY CONTROL = 0x%x\n", (int)net_i825xx_phy_read(dev, i825xx_PHYREG_PCTRL));
+		printk("i825xx: PHY STATUS = 0x%x\n", (int)net_i825xx_phy_read(dev, i825xx_PHYREG_PSTATUS));
+		printk("i825xx: PHY PSSTAT = 0x%x\n", (int)net_i825xx_phy_read(dev, i825xx_PHYREG_PSSTAT));
+		printk("i825xx: PHY ANA = 0x%x\n", (int)net_i825xx_phy_read(dev, 4));
+		printk("i825xx: PHY ANE = 0x%x\n", (int)net_i825xx_phy_read(dev, 6));
+		printk("i825xx: PHY GCON = 0x%x\n", (int)net_i825xx_phy_read(dev, 9));
+		printk("i825xx: PHY GSTATUS = 0x%x\n", (int)net_i825xx_phy_read(dev, 10));
+		printk("i825xx: PHY EPSTATUS = 0x%x\n", (int)net_i825xx_phy_read(dev, 15));
 	}
 
 	// RX underrun / min threshold
 	if( icr & (1 << 6) || icr & (1 << 4) )
 	{
 		icr &= ~((1 << 6) | (1 << 4));
-		printk(" underrun (rx_head = %u, rx_tail = %u)\n", mmio_read32(i825xx_REG_RDH), dev->rx_tail);
+		printk(" underrun (rx_head = %u, rx_tail = %u)\n", (int)mmio_read32(i825xx_REG_RDH), (int)dev->rx_tail);
 
 		volatile int i;
 		for(i = 0; i < NUM_RX_DESCRIPTORS; i++)
 		{
 			if( dev->rx_desc[i]->status )
-				printk(" pending descriptor (i=%u, status=0x%x)\n", i, dev->rx_desc[i]->status );
+				printk(" pending descriptor (i=%u, status=0x%x)\n", i, (int)dev->rx_desc[i]->status );
 		}
 
 		netdev->rx_poll(netdev);
@@ -427,7 +451,7 @@ static void i825xx_interrupt_handler( CPUContext *ctx )
 	}
 
 	if( icr )
-		printk("i825xx[%u]: unhandled interrupt #%u received! (0x%x)\n", netdev->hwid, ctx->vector, icr);
+		printk("i825xx[%u]: unhandled interrupt #%u received! (0x%x)\n", (int)netdev->hwid, (int)ctx->vector, (int)icr);
 
 	// clearing the pending interrupts
 	mmio_read32(dev->mmio_address + 0xC0);
@@ -467,7 +491,7 @@ int net_i825xx_init( struct pci_device *pcidev )
 	printk(" prefetchable: %s\n", bar->prefetchable ? "true" : "false");
 	printk(" is64bit: %s\n", bar->is64bit ? "true" : "false");
 	printk(" locate below 1MB: %s\n", bar->locate_below_1meg ? "true" : "false");
-	printk(" address: 0x%x\n", bar->address);
+	printk(" address: 0x%x\n", (int)bar->address);
 
 	// register the MMIO address
 	dev->mmio_address = (uintptr_t)bar->address;
@@ -486,7 +510,7 @@ int net_i825xx_init( struct pci_device *pcidev )
 
 	// globally register the devices
 	register_global_network_device( netdev );
-	printk("i825xx[%u]: interrupt line = %u (isr%u)\n", netdev->hwid, netdev->interrupt_line, 32+netdev->interrupt_line);
+	printk("i825xx[%u]: interrupt line = %u (isr%u)\n", (int)netdev->hwid, (int)netdev->interrupt_line, 32+netdev->interrupt_line);
 
 	// get the MAC address
 	uint16_t mac16 = dev->eeprom_read(dev, 0);
@@ -503,7 +527,7 @@ int net_i825xx_init( struct pci_device *pcidev )
 	mmio_write32(i825xx_REG_CTRL, (mmio_read32(i825xx_REG_CTRL) | CTRL_SLU));
 
 	// Initialize the Multicase Table Array
-	printk("i825xx[%u]: Initializing the Multicast Table Array...\n", netdev->hwid);
+	printk("i825xx[%u]: Initializing the Multicast Table Array...\n", (int)netdev->hwid);
 	int i;
 	for( i = 0; i < 128; i++ )
 		mmio_write32(i825xx_REG_MTA + (i * 4), 0);
@@ -516,7 +540,7 @@ int net_i825xx_init( struct pci_device *pcidev )
 	netdev->rx_init(netdev);
 	netdev->tx_init(netdev);
 
-	printk("i825xx[%u]: configuration complete\n", netdev->hwid);
+	printk("i825xx[%u]: configuration complete\n", (int)netdev->hwid);
 
 	return 0;
 }

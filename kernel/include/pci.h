@@ -44,16 +44,17 @@ struct pci_device {
 typedef struct pci_bar {
 	bool locate_below_1meg;
 	uint32_t address;
-	bool type;
+	int type;
 	bool prefetchable;
 	bool is64bit;
 } pci_bar;
 
-#define PCI_BAR_MMIO -1 // TODO: Set correct
+#define PCI_BAR_MMIO 1 // TODO: Set correct
 
 void find_pci_device(void);
 void show_all_pci_device(void);
 struct pci_device *get_pci_device(uint16_t vender, uint16_t device, uint8_t function);
+struct pci_bar *pci_resolve_bar(struct pci_device *pci, int val);
 
 void pci_data_write(struct pci_device *pci, uint8_t reg_num, uint32_t data);
 uint32_t pci_data_read(struct pci_device *pci, uint8_t reg_num);

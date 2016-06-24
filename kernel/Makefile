@@ -1,4 +1,4 @@
-CFLAGS	=	-Wall -Wextra
+CFLAGS	=	-Wall -Wextra -Wno-unused-function
 CFLAGS	+=	-nostdinc -nostdlib -fno-builtin -c
 CFLAGS	+=	-Iinclude
 
