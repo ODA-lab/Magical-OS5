@@ -14,7 +14,8 @@ enum {
 	WRITEL,
 	IOWRITEB,
 	TEST,
-	COMMAND_NUM
+	COMMAND_NUM,
+	SHUTDOWN
 } _COMMAND_SET;
 
 static void shell_main(void);
@@ -279,6 +280,12 @@ static int command_test(char *args)
 	return 0;
 }
 
+static int command_shutdown(char *args)
+{
+	syscall(SYSCALL_SHUTDOWN, 0, 0, 0);
+	return 0;
+}
+
 static unsigned char get_command_id(const char *command)
 {
 	if (!str_compare(command, "echo")) {
@@ -319,6 +326,10 @@ static unsigned char get_command_id(const char *command)
 
 	if (!str_compare(command, "test")) {
 		return TEST;
+	}
+
+	if (!str_compare(command, "shutdown")) {
+		return SHUTDOWN;
 	}
 
 	return COMMAND_NUM;
@@ -368,6 +379,9 @@ static void shell_main(void)
 			break;
 		case TEST:
 			command_test(args);
+			break;
+		case SHUTDOWN:
+			command_shutdown(args);
 			break;
 		default:
 			fp = syscall(SYSCALL_OPEN, (unsigned int)command, 0, 0);
