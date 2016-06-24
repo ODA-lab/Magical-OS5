@@ -18,6 +18,8 @@
 #include <pci.h>
 #include <block_driver.h>
 #include <ata.h>
+#include <io_port.h>
+#include <string.h>
 
 int kern_init(void)
 {
@@ -88,10 +90,15 @@ int kern_init(void)
 	show_all_registered_driver();
 	{
 		struct blk_device_drivers* drivers = get_blk_driver("ATA disk");
+		char buf0[512];
+		char buf1[512];
+		strcpy(buf1, "--------------- Please add virtual hard drive at primary master ------------ \n");
 		drivers->op->open();
+		strcpy(buf0, "--------------- Test data written in disk ----------------\n");
+		drivers->op->write(0, 100, (sector_t *)buf0, SECTOR_SIZE);
+		drivers->op->read(0, 100, (sector_t *)buf1, SECTOR_SIZE);
+		put_str(buf1);
 	}
-
-
 	/* End of kernel initialization process */
 	while (1) {
 		x86_halt();
