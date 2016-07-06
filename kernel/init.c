@@ -12,6 +12,7 @@
 #include <kern_task.h>
 #include <shell_init.h>
 #include <uptime_init.h>
+#include <new_init.h>
 #include <list.h>
 #include <queue.h>
 #include <common.h>

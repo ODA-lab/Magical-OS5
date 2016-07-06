@@ -6,7 +6,7 @@ CFLAGS	+=	-Iinclude -I$(KERNEL_PATH)/include
 .c.o:
 	gcc $(CFLAGS) -o $@ $<
 
-apps.img: bin/shell bin/uptime
+apps.img: bin/shell bin/uptime bin/new
 	../tools/make_os5_fs.sh $+ > $@
 
 bin/shell: shell.o
@@ -17,9 +17,17 @@ bin/uptime: uptime.o
 	[ -d bin ] || mkdir bin
 	ld -o $@ $< -Map uptime.map -s -T app.ld -x
 
+bin/new: new.o
+	[ -d bin ] || mkdir bin
+	ld -o $@ $< -Map new.map -s -T app.ld -x
+
+
 shell.o: shell.c
 
 uptime.o: uptime.c
+
+new.o: new.c
+
 
 clean:
 	rm -rf *~ *.o *.bin *.dat *.img *.map bin

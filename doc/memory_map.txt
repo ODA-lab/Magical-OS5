@@ -68,6 +68,13 @@ GDT
 |           | - bss                          |
 | ...       | ...                            |
 | 0001 3fff | loaded uptime binary(last)     |
+| 0001 4000 | loaded new binary(first)       |
+|           | - text                         |
+|           | - rodata                       |
+|           | - data                         |
+|           | - bss                          |
+| ...       | ...                            |
+| 0001 4fff | loaded new binary(last)        |
 | ...       | ...                            |
 | 0007 1000 | shell stack base               |
 | ...       | ...                            |

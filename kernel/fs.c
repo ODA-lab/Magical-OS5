@@ -4,9 +4,10 @@
 #include <list.h>
 #include <queue.h>
 #include <common.h>
+#include <debug.h>
 
 struct file_head fhead;
-struct file fshell, fuptime;
+struct file fshell, fuptime, fnew;
 
 void fs_init(void *fs_base_addr)
 {
@@ -20,6 +21,10 @@ void fs_init(void *fs_base_addr)
 	fuptime.name = (char *)fs_base_addr + (PAGE_SIZE * 2);
 	fuptime.data_base_addr = (char *)fs_base_addr + (PAGE_SIZE * 2) + 32;
 	queue_enq((struct list *)&fuptime, (struct list *)&fhead);
+
+	fnew.name = (char *)fs_base_addr + (PAGE_SIZE * 3);
+	fnew.data_base_addr = (char *)fs_base_addr + (PAGE_SIZE * 3) + 32;
+	queue_enq((struct list *)&fnew, (struct list *)&fhead);
 }
 
 struct file *fs_open(const char *name)
@@ -30,9 +35,10 @@ struct file *fs_open(const char *name)
 	 * TASK_IDを入れるようにする。そして、openしようとしているファ
 	 * イルのtask_idが既に設定されていれば、fs_openはエラーを返す
 	 * ようにする */
-
 	for (f = (struct file *)fhead.lst.next; f != (struct file *)&fhead; f = (struct file *)f->lst.next) {
 		if (!str_compare(name, f->name))
+
+
 			return f;
 	}
 

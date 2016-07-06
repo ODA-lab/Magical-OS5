@@ -12,6 +12,7 @@ struct file {
 	struct list lst;
 	char *name;
 	void *data_base_addr;
+	
 };
 
 extern struct file fshell;

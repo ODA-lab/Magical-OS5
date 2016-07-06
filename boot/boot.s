@@ -135,7 +135,7 @@ load_track2_head0:
 	jc	load_track2_head0
 
 	/* トラック2, ヘッド1, セクタ1-8
-	 * src: トラック2, ヘッド0の8セクタ
+	 * src: トラック2, ヘッド1の8セクタ
 	 *      (8セクタ = 4096バイト = 0x1000バイト)
 	 * dst: 0x0001 3000 〜 0x0001 3fff
 	 */
@@ -148,6 +148,26 @@ load_track2_head1:
 	movw	$0x0208, %ax
 	int	$0x13
 	jc	load_track2_head1
+
+	movw	$msg_completed, %si
+	call	print_msg
+
+	/*新規追加*/
+	/* トラック2, ヘッド1, セクタ9-16
+	 * src: トラック2, ヘッド0の8セクタ
+	 *      (8セクタ = 4096バイト = 0x1000バイト)
+	 * dst: 0x0001 4000 〜 0x0001 4fff
+	 */
+
+load_track2_head1_2:
+	movw	$0x1000, %ax
+	movw	%ax, %es
+	movw	$0x4000, %bx
+	movw	$0x0100, %dx
+	movw	$0x0209, %cx
+	movw	$0x0208, %ax
+	int	$0x13
+	jc	load_track2_head1_2
 
 	movw	$msg_completed, %si
 	call	print_msg
