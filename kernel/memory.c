@@ -5,7 +5,7 @@
 
 #define CR4_BIT_PGE	(1U << 7)
 #define MAX_HEAP_PAGES	11
-#define HEAP_START_ADDR	0x00095000
+#define HEAP_START_ADDR	0x00100000
 
 static char heap_alloc_table[MAX_HEAP_PAGES] = {0};
 
@@ -80,7 +80,21 @@ void mem_init(void)
 		paging_base_addr += 0x00001;
 		pte++;
 	}
-	for (; i < 0x400; i++) {
+	for (; i < 0x00100; i++) {
+		pte->all = 0;
+		pte++;
+	}
+	paging_base_addr = 0x00100;
+	for (; i < 0x00e00; i++) {
+		pte->all = 0;
+		pte->p = 1;
+		pte->r_w = 1;
+        pte->g = 1;
+		pte->page_base = paging_base_addr;
+		paging_base_addr += 0x00001;
+		pte++;
+	}
+    for (; i < 0x400; i++) {
 		pte->all = 0;
 		pte++;
 	}
