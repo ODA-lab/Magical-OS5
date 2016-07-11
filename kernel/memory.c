@@ -85,16 +85,16 @@ void mem_init(void)
 		pte++;
 	}
 	paging_base_addr = 0x00100;
-	for (; i < 0x00e00; i++) {
+	for (; i < 0xe00; i++) {
 		pte->all = 0;
 		pte->p = 1;
 		pte->r_w = 1;
-        pte->g = 1;
+    pte->g = 1;
 		pte->page_base = paging_base_addr;
 		paging_base_addr += 0x00001;
 		pte++;
 	}
-    for (; i < 0x400; i++) {
+  for (; i < 0x40000; i++) {
 		pte->all = 0;
 		pte++;
 	}
@@ -155,4 +155,3 @@ void  kfree(void *ptr)
 	// mem_free(ptr);
 	(void)ptr;
 }
-
