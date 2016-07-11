@@ -4,7 +4,7 @@
 #include <console_io.h>
 
 #define CR4_BIT_PGE	(1U << 7)
-#define MAX_HEAP_PAGES	11
+#define MAX_HEAP_PAGES	3584
 #define HEAP_START_ADDR	0x00100000
 
 static char heap_alloc_table[MAX_HEAP_PAGES] = {0};
@@ -54,6 +54,7 @@ void mem_init(void)
 		pte->all = 0;
 		pte++;
 	}
+	//heap
 	paging_base_addr = 0x00095;
 	for (; i <= 0x09f; i++) {
 		pte->all = 0;
@@ -64,10 +65,11 @@ void mem_init(void)
 		paging_base_addr += 0x00001;
 		pte++;
 	}
-	for (; i < 0x0b8; i++) {
+	for (; i < 0x000b8; i++) {
 		pte->all = 0;
 		pte++;
 	}
+	//VRAM
 	paging_base_addr = 0x000b8;
 	for (; i <= 0x0bf; i++) {
 		pte->all = 0;
@@ -84,8 +86,9 @@ void mem_init(void)
 		pte->all = 0;
 		pte++;
 	}
+	//Extended Heap(14MiB)
 	paging_base_addr = 0x00100;
-	for (; i < 0xe00; i++) {
+	for (; i < 0x00eff; i++) {
 		pte->all = 0;
 		pte->p = 1;
 		pte->r_w = 1;
