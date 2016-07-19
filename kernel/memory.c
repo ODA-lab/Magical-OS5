@@ -4,8 +4,8 @@
 #include <console_io.h>
 
 #define CR4_BIT_PGE	(1U << 7)
-#define MAX_HEAP_PAGES	11
-#define HEAP_START_ADDR	0x00095000
+#define MAX_HEAP_PAGES	3584
+#define HEAP_START_ADDR	0x00100000
 
 static char heap_alloc_table[MAX_HEAP_PAGES] = {0};
 
@@ -49,11 +49,12 @@ void mem_init(void)
 		pte->page_base = paging_base_addr;
 		paging_base_addr += 0x00001;
 		pte++;
-	}
+	}/*
 	for (; i < 0x095; i++) {
 		pte->all = 0;
 		pte++;
 	}
+
 	paging_base_addr = 0x00095;
 	for (; i <= 0x09f; i++) {
 		pte->all = 0;
@@ -63,7 +64,7 @@ void mem_init(void)
 		pte->page_base = paging_base_addr;
 		paging_base_addr += 0x00001;
 		pte++;
-	}
+	}*/
 	for (; i < 0x0b8; i++) {
 		pte->all = 0;
 		pte++;
@@ -80,6 +81,23 @@ void mem_init(void)
 		paging_base_addr += 0x00001;
 		pte++;
 	}
+	for (; i < 0x100; i++) {
+		pte->all = 0;
+		pte++;
+	}
+
+	/*ヒープ追加*/
+	paging_base_addr = 0x00100;
+	for (; i <= 0xf00; i++) {
+		pte->all = 0;
+		pte->p = 1;
+		pte->r_w = 1;
+		pte->g = 1;
+		pte->page_base = paging_base_addr;
+		paging_base_addr += 0x00001;
+		pte++;
+	}
+	/*ここまで*/
 	for (; i < 0x400; i++) {
 		pte->all = 0;
 		pte++;
@@ -141,4 +159,3 @@ void  kfree(void *ptr)
 	// mem_free(ptr);
 	(void)ptr;
 }
-

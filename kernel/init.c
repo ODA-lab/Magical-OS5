@@ -99,6 +99,15 @@ int kern_init(void)
 	drivers->op->read(0, 100, (sector_t *)buf1, SECTOR_SIZE);
 	put_str(buf1);
 
+	/*
+	int *p = kmalloc(100 * sizeof(int));
+	int *q = kmalloc(200 * sizeof(int));
+	int *r = kmalloc(300 * sizeof(int));
+	printk("%x\n",p);
+	printk("%x\n",q);
+	printk("%x\n",r);
+	*/
+
 	/* End of kernel initialization process */
 	while (1) {
 		x86_halt();
