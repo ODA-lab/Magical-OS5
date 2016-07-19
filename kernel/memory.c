@@ -98,6 +98,7 @@ void mem_init(void)
 		pte++;
 	}
 	/*ここまで*/
+
 	for (; i < 0x400; i++) {
 		pte->all = 0;
 		pte++;

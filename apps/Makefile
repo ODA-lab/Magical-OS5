@@ -21,6 +21,8 @@ shell.o: shell.c
 
 uptime.o: uptime.c
 
+
+
 clean:
 	rm -rf *~ *.o *.bin *.dat *.img *.map bin
 
