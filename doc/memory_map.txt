@@ -95,9 +95,9 @@ GDT
 |-----------+--------------------------------|
 | ...       | ...                            |
 |-----------+--------------------------------|
-| 0010 0000 | Extended Memory(first)         |
+| 0010 0000 | Extended Heap Memory(first)    |
 | ...       | ...                            |
-| 00ef ffff | Extended Memory(last)          |
+| 00ef ffff | Extended Heap Memory(last)     |
 |-----------+--------------------------------|
 
 ** Virtual Address Space
