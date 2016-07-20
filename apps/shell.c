@@ -15,7 +15,8 @@ enum {
 	IOWRITEB,
 	TEST,
 	COMMAND_NUM,
-	SHUTDOWN
+	SHUTDOWN,
+	STOP
 } _COMMAND_SET;
 
 static void shell_main(void);
@@ -287,6 +288,14 @@ static int command_shutdown(char *args)
 	return 0;
 }
 
+static int command_stop(char *args)
+{
+	syscall(SYSCALL_STOP_TIMER, 0, 0, 0);
+	shell_put_str("stop\r\n");
+	(void)args;
+	return 0;
+}
+
 static unsigned char get_command_id(const char *command)
 {
 	if (!str_compare(command, "echo")) {
@@ -331,6 +340,10 @@ static unsigned char get_command_id(const char *command)
 
 	if (!str_compare(command, "shutdown")) {
 		return SHUTDOWN;
+	}
+
+	if (!str_compare(command, "stop")) {
+		return STOP;
 	}
 
 	return COMMAND_NUM;
@@ -383,6 +396,9 @@ static void shell_main(void)
 			break;
 		case SHUTDOWN:
 			command_shutdown(args);
+			break;
+		case STOP:
+			command_stop(args);
 			break;
 		default:
 			fp = syscall(SYSCALL_OPEN, (unsigned int)command, 0, 0);
