@@ -291,7 +291,7 @@ static int command_shutdown(char *args)
 static int command_stop(char *args)
 {
 	syscall(SYSCALL_STOP_TIMER, 0, 0, 0);
-	shell_put_str("stop\r\n");
+	//shell_put_str("stop\r\n");
 	(void)args;
 	return 0;
 }

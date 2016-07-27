@@ -8,15 +8,18 @@
 
 enum {
 	SCHED_CAUSE_TIMER,
-	SCHED_CAUSE_SYSCALL
+	SCHED_CAUSE_SYSCALL,
+	SCHED_CAUSE_SUSPEND
 };
 
 extern struct task task_instance_table[TASK_NUM];
 
 unsigned short sched_get_current(void);
 int sched_runq_enq(struct task *t);
+int sched_suspendq_enq(struct task *t);
 void schedule(unsigned char cause_id);
 int sched_update_wakeupq(void);
+void run_only_task(void);
 void wakeup_after_msec(unsigned int msec);
 int sched_update_wakeupevq(unsigned char event_type);
 void wakeup_after_event(unsigned char event_type);

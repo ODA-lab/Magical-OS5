@@ -6,6 +6,7 @@
 #include <timer.h>
 #include <lock.h>
 #include <kern_task.h>
+#include <console_io.h>
 
 static struct task *current_task = NULL;
 static struct {
@@ -20,6 +21,10 @@ static struct {
 	struct task *head;
 	unsigned int len;
 } wakeup_event_queue = {NULL, 0};
+static struct {
+	struct task *head;
+	unsigned int len;
+} suspend_queue = {NULL, 0};
 static struct task dummy_task;
 
 struct task task_instance_table[TASK_NUM];
@@ -75,6 +80,51 @@ int sched_runq_del(struct task *t)
 	return 0;
 }
 
+int sched_suspendq_enq(struct task *t)
+{
+	unsigned char if_bit;
+
+	kern_lock(&if_bit);
+
+	if (suspend_queue.head) {
+		t->prev = suspend_queue.head->prev;
+		t->next = suspend_queue.head;
+		suspend_queue.head->prev->next = t;
+		suspend_queue.head->prev = t;
+	} else {
+		t->prev = t;
+		t->next = t;
+		suspend_queue.head = t;
+	}
+	suspend_queue.len++;
+
+	kern_unlock(&if_bit);
+
+	return 0;
+}
+
+int sched_suspendq_del(struct task *t)
+{
+	unsigned char if_bit;
+
+	if (!suspend_queue.head)
+		return -1;
+
+	kern_lock(&if_bit);
+
+	if (suspend_queue.head->next != suspend_queue.head) {
+		if (suspend_queue.head == t)
+			suspend_queue.head = suspend_queue.head->next;
+		t->prev->next = t->next;
+		t->next->prev = t->prev;
+	} else
+		suspend_queue.head = NULL;
+	suspend_queue.len--;
+
+	kern_unlock(&if_bit);
+
+	return 0;
+}
 void schedule(unsigned char cause_id)
 {
 	if ((cause_id == SCHED_CAUSE_TIMER) && current_task
@@ -191,6 +241,29 @@ int sched_update_wakeupq(void)
 	kern_unlock(&if_bit);
 
 	return 0;
+}
+
+void run_only_task(void)
+{
+	unsigned char if_bit;
+	printk("Current taskID : %d\n",current_task->task_id);
+	printk("Next taskID : %d\n",current_task->next->task_id);
+
+	while(wakeup_queue.head){
+		printk("wakeup_queue -> suspend_queue\n");
+		sched_suspendq_enq(wakeup_queue.head);
+		sched_wakeupq_del(wakeup_queue.head);
+	}
+	while(current_task->next != current_task){
+		put_str("enqueue!\n");
+		kern_lock(&if_bit);
+
+		sched_runq_del(current_task->next);
+		sched_wakeupq_enq(current_task->next);
+
+		kern_unlock(&if_bit);
+	}
+	current_task->task_id;
 }
 
 void wakeup_after_msec(unsigned int msec)

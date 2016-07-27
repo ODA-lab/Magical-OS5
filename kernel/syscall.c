@@ -59,9 +59,7 @@ unsigned int do_syscall(unsigned int syscall_id, unsigned int arg1, unsigned int
 		outb_p('n', 0x8900);
 		break;
 	case SYSCALL_STOP_TIMER:
-		//pitのカウンタを0にしても止まらない
-		// outb_p(0x00, 0x0040);
-		// outb_p(0x00, 0x0040);
+		run_only_task();
 		result = 0;
 		break;
 	}
