@@ -12,7 +12,7 @@ struct file {
 	struct list lst;
 	char *name;
 	void *data_base_addr;
-	
+
 };
 
 extern struct file fshell;
@@ -20,5 +20,8 @@ extern struct file fshell;
 void fs_init(void *fs_base_addr);
 struct file *fs_open(const char *name);
 int fs_close(struct file *f);
+void fs_make(char *filename,char *filedata);
+void ls();
+void read(char *filename);
 
 #endif /* _FS_H_ */

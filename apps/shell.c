@@ -1,5 +1,6 @@
 #include <io_port.h>
 #include <kernel.h>
+//#include <fs.h>
 
 #define MAX_LINE_SIZE	512
 
@@ -15,7 +16,10 @@ enum {
 	IOWRITEB,
 	TEST,
 	COMMAND_NUM,
-	SHUTDOWN
+	SHUTDOWN,
+	NEWFILE,
+	LS,
+	READ
 } _COMMAND_SET;
 
 static void shell_main(void);
@@ -287,6 +291,29 @@ static int command_shutdown(char *args)
 	return 0;
 }
 
+static int command_newfile(char *args)
+{
+	char first[32], other[4063];
+	unsigned char data;
+	unsigned short addr;
+
+	str_get_first_entry(args, first, other);
+	syscall(NEWFILE,first, other, 0);
+	return 0;
+}
+
+static int command_ls(char *args){
+	syscall(LS, 0, 0, 0);
+	(void)args;
+	return 0;
+}
+
+static int command_read(char *args){
+	syscall(READ,args, 0, 0);
+	return 0;
+}
+
+
 static unsigned char get_command_id(const char *command)
 {
 	if (!str_compare(command, "echo")) {
@@ -332,6 +359,16 @@ static unsigned char get_command_id(const char *command)
 	if (!str_compare(command, "shutdown")) {
 		return SHUTDOWN;
 	}
+	if (!str_compare(command, "newfile")) {
+		return NEWFILE;
+	}
+	if (!str_compare(command, "ls")) {
+		return LS;
+	}
+	if (!str_compare(command, "read")) {
+		return READ;
+	}
+
 
 	return COMMAND_NUM;
 }
@@ -383,6 +420,15 @@ static void shell_main(void)
 			break;
 		case SHUTDOWN:
 			command_shutdown(args);
+			break;
+		case NEWFILE:
+			command_newfile(args);
+			break;
+		case LS:
+			command_ls(args);
+			break;
+		case READ:
+			command_read(args);
 			break;
 		default:
 			fp = syscall(SYSCALL_OPEN, (unsigned int)command, 0, 0);

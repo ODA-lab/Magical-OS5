@@ -58,6 +58,18 @@ unsigned int do_syscall(unsigned int syscall_id, unsigned int arg1, unsigned int
 		outb_p('w', 0x8900);
 		outb_p('n', 0x8900);
 		break;
+	case SYSCALL_NEWFILE:
+		fs_make((char *)arg1, (char *)arg2);
+		result = 0;
+		break;
+	case SYSCALL_LS:
+		ls();
+		result = 0;
+		break;
+	case SYSCALL_READ:
+		read((char *)arg1);
+		result = 0;
+		break;
 	}
 
 	return result;
